@@ -11,20 +11,21 @@ import org.springframework.stereotype.Service;
 
 import vn.spring.jobhunter.domain.Company;
 import vn.spring.jobhunter.domain.User;
-import vn.spring.jobhunter.domain.response.ResCreateUserDTO;
-import vn.spring.jobhunter.domain.response.ResUpdateUserDTO;
-import vn.spring.jobhunter.domain.response.ResUserDTO;
 import vn.spring.jobhunter.domain.response.ResultPaginationDTO;
+import vn.spring.jobhunter.domain.response.user.ResUserDTO;
+import vn.spring.jobhunter.mapper.UserMapper;
 import vn.spring.jobhunter.repository.UserRepository;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
     private final CompanyService companyService;
+    private final UserMapper userMapper;
 
-    public UserService(UserRepository userRepository, CompanyService companyService) {
+    public UserService(UserRepository userRepository, CompanyService companyService, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.companyService = companyService;
+        this.userMapper = userMapper;
     }
 
     public ResultPaginationDTO getAllUsers(Specification<User> spec, Pageable pageable) {
@@ -41,18 +42,7 @@ public class UserService {
 
         List<ResUserDTO> listUser = pageUser
                 .getContent().stream()
-                .map(item -> new ResUserDTO(
-                        item.getId(),
-                        item.getName(),
-                        item.getEmail(),
-                        item.getAge(),
-                        item.getAddress(),
-                        item.getGender(),
-                        item.getCreatedAt(),
-                        item.getUpdatedAt(),
-                        new ResUserDTO.CompanyUser(
-                                item.getCompany() != null ? item.getCompany().getId() : 0,
-                                item.getCompany() != null ? item.getCompany().getName() : null)))
+                .map(item -> userMapper.mapToUserDto(item))
                 .collect(Collectors.toList());
 
         rs.setResult(listUser);
@@ -106,61 +96,6 @@ public class UserService {
         Optional<User> user = getUserById(id);
 
         userRepository.delete(user.get());
-    }
-
-    public ResCreateUserDTO convertToResCreateUserDTO(User user) {
-        ResCreateUserDTO res = new ResCreateUserDTO();
-        ResCreateUserDTO.CompanyUser com = new ResCreateUserDTO.CompanyUser();
-        res.setId(user.getId());
-        res.setEmail(user.getEmail());
-        res.setName(user.getName());
-        res.setAge(user.getAge());
-        res.setCreatedAt(user.getCreatedAt());
-        res.setAddress(user.getAddress());
-        if (user.getCompany() != null) {
-            com.setId(user.getCompany().getId());
-            com.setName(user.getCompany().getName());
-            res.setCompany(com);
-        }
-
-        return res;
-    }
-
-    public ResUpdateUserDTO convertToResUpdateUserDTO(User user) {
-        ResUpdateUserDTO res = new ResUpdateUserDTO();
-        ResUpdateUserDTO.CompanyUser com = new ResUpdateUserDTO.CompanyUser();
-
-        if (user.getCompany() != null) {
-            com.setId(user.getCompany().getId());
-            com.setName(user.getCompany().getName());
-            res.setCompany(com);
-        }
-        res.setId(user.getId());
-        res.setName(user.getName());
-        res.setAge(user.getAge());
-        res.setCreatedAt(user.getCreatedAt());
-        res.setAddress(user.getAddress());
-        return res;
-    }
-
-    public ResUserDTO convertToResUserDTO(User user) {
-        ResUserDTO res = new ResUserDTO();
-        ResUserDTO.CompanyUser com = new ResUserDTO.CompanyUser();
-
-        if (user.getCompany() != null) {
-            com.setId(user.getCompany().getId());
-            com.setName(user.getCompany().getName());
-            res.setCompany(com);
-        }
-
-        res.setId(user.getId());
-        res.setEmail(user.getEmail());
-        res.setName(user.getName());
-        res.setAge(user.getAge());
-        res.setAddress(user.getAddress());
-        res.setCreatedAt(user.getCreatedAt());
-        res.setUpdatedAt(user.getUpdatedAt());
-        return res;
     }
 
     public void updateUserToken(String token, String email) {

@@ -48,8 +48,7 @@ public class SecurityUtil {
         this.jwtEncoder = jwtEncoder;
     }
 
-    public String createAccessToken(String email, ResLoginDTO.UserLogin dto) {
-        // TODO Auto-generated method stub
+    private String createToken(String subject, Object dto) {
         Instant now = Instant.now();
 
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
@@ -57,7 +56,7 @@ public class SecurityUtil {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuedAt(now)
                 .expiresAt(validity)
-                .subject(email)
+                .subject(subject)
                 .claim("user", dto)
                 .build();
 
@@ -66,22 +65,12 @@ public class SecurityUtil {
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
     }
 
+    public String createAccessToken(String email, ResLoginDTO.UserLogin dto) {
+        return createToken(email, dto);
+    }
+
     public String createRefreshToken(String email, ResLoginDTO dto) {
-        // TODO Auto-generated method stub
-        Instant now = Instant.now();
-
-        Instant validity = now.plus(this.refreshTokenExpiration, ChronoUnit.SECONDS);
-
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuedAt(now)
-                .expiresAt(validity)
-                .subject(email)
-                .claim("user", dto.getUser())
-                .build();
-
-        JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
-
-        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
+        return createToken(email, dto.getUser());
     }
 
     private SecretKey getSecretKey() {

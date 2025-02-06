@@ -6,10 +6,11 @@ import com.turkraft.springfilter.boot.Filter;
 
 import jakarta.validation.Valid;
 import vn.spring.jobhunter.domain.User;
-import vn.spring.jobhunter.domain.response.ResCreateUserDTO;
-import vn.spring.jobhunter.domain.response.ResUpdateUserDTO;
-import vn.spring.jobhunter.domain.response.ResUserDTO;
 import vn.spring.jobhunter.domain.response.ResultPaginationDTO;
+import vn.spring.jobhunter.domain.response.user.ResCreateUserDTO;
+import vn.spring.jobhunter.domain.response.user.ResUpdateUserDTO;
+import vn.spring.jobhunter.domain.response.user.ResUserDTO;
+import vn.spring.jobhunter.mapper.UserMapper;
 import vn.spring.jobhunter.service.UserService;
 import vn.spring.jobhunter.util.error.IdInvalidException;
 
@@ -35,11 +36,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class UserController {
     private final UserService userService;
 
+    private final UserMapper userMapper;
+
     private final PasswordEncoder passwordEncoder;
 
-
-    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userService = userService;
+        this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -53,10 +56,10 @@ public class UserController {
         Optional<User> fetchUser = userService.getUserById(id);
 
         if(fetchUser.isEmpty()) {
-            throw new IdInvalidException("User with id" + id + " not exist");
+            throw new IdInvalidException("User with id " + id + " not exist");
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(userService.convertToResUserDTO(fetchUser.get()));
+        return ResponseEntity.status(HttpStatus.OK).body(userMapper.mapToUserDto(fetchUser.get()));
     }
 
     @PostMapping
@@ -64,12 +67,12 @@ public class UserController {
         boolean isEmailExist = userService.isEmailExist(user.getEmail());
 
         if(isEmailExist) {
-            throw new IdInvalidException("Email" + user.getEmail() + " is exist, please use another email.");
+            throw new IdInvalidException("Email " + user.getEmail() + " is exist, please use another email.");
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User newUser = userService.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.convertToResCreateUserDTO(newUser));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.mapToCreateUserDto(newUser));
     }
 
     @PutMapping("/{id}")
@@ -77,9 +80,9 @@ public class UserController {
         User updateUser = userService.updateUser(userDetails);
 
         if(updateUser == null) {
-            throw new IdInvalidException("User with id" + userDetails.getId() + " not exist");
+            throw new IdInvalidException("User with id " + userDetails.getId() + " not exist");
         }
-        return ResponseEntity.ok(userService.convertToResUpdateUserDTO(updateUser));
+        return ResponseEntity.ok(userMapper.mapToUpdateUserDto(updateUser));
     }
 
     @DeleteMapping("/{id}")
@@ -87,7 +90,7 @@ public class UserController {
         Optional<User> currentUser = userService.getUserById(id);
 
         if(currentUser.isEmpty()) {
-            throw new IdInvalidException("User with id" + id + " not exist");
+            throw new IdInvalidException("User with id " + id + " not exist");
         }
         userService.deleteUser(id);
 
