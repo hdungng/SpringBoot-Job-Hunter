@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import vn.spring.jobhunter.domain.Company;
+import vn.spring.jobhunter.domain.Role;
 import vn.spring.jobhunter.domain.User;
 import vn.spring.jobhunter.domain.response.ResultPaginationDTO;
 import vn.spring.jobhunter.domain.response.user.ResUserDTO;
@@ -20,11 +21,14 @@ import vn.spring.jobhunter.repository.UserRepository;
 public class UserService {
     private final UserRepository userRepository;
     private final CompanyService companyService;
+    private final RoleService roleService;
     private final UserMapper userMapper;
 
-    public UserService(UserRepository userRepository, CompanyService companyService, UserMapper userMapper) {
+    public UserService(UserRepository userRepository, CompanyService companyService, RoleService roleService,
+            UserMapper userMapper) {
         this.userRepository = userRepository;
         this.companyService = companyService;
+        this.roleService = roleService;
         this.userMapper = userMapper;
     }
 
@@ -67,6 +71,12 @@ public class UserService {
             Optional<Company> companyOptional = companyService.getCompanyById(user.getCompany().getId());
             user.setCompany(companyOptional.isPresent() ? companyOptional.get() : null);
         }
+
+        // check role
+        if (user.getRole() != null) {
+            Optional<Role> RoleOptional = roleService.getRoleById(user.getRole().getId());
+            user.setRole(RoleOptional.isPresent() ? RoleOptional.get() : null);
+        }
         return userRepository.save(user);
     }
 
@@ -84,6 +94,12 @@ public class UserService {
             if (userDetails.getCompany() != null) {
                 Optional<Company> companyOptional = companyService.getCompanyById(user.getCompany().getId());
                 userDetails.setCompany(companyOptional.isPresent() ? companyOptional.get() : null);
+            }
+
+            // check role
+            if (userDetails.getRole() != null) {
+                Optional<Role> RoleOptional = roleService.getRoleById(user.getRole().getId());
+                userDetails.setRole(RoleOptional.isPresent() ? RoleOptional.get() : null);
             }
 
             // update

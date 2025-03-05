@@ -8,9 +8,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import vn.spring.jobhunter.domain.Company;
 import vn.spring.jobhunter.domain.Job;
 import vn.spring.jobhunter.domain.Skill;
 import vn.spring.jobhunter.domain.response.ResultPaginationDTO;
+import vn.spring.jobhunter.repository.CompanyRepository;
 import vn.spring.jobhunter.repository.JobRepository;
 import vn.spring.jobhunter.repository.SkillRepository;
 
@@ -18,10 +21,15 @@ import vn.spring.jobhunter.repository.SkillRepository;
 public class JobService {
     private final JobRepository jobRepository;
     private final SkillRepository skillRepository;
+    private final CompanyRepository companyRepository;
 
-    public JobService(JobRepository jobRepository, SkillRepository skillRepository) {
+    
+
+    public JobService(JobRepository jobRepository, SkillRepository skillRepository,
+            CompanyRepository companyRepository) {
         this.jobRepository = jobRepository;
         this.skillRepository = skillRepository;
+        this.companyRepository = companyRepository;
     }
 
     public ResultPaginationDTO getAllJobs(Specification<Job> spec, Pageable pageable) {
@@ -70,6 +78,16 @@ public class JobService {
             List<Skill> dbSkills = skillRepository.findByIdIn(reqSkills);
             jobDetails.setSkills(dbSkills);
         }
+
+        if(jobDetails.getCompany() != null) {
+            Optional<Company> companyOptional = companyRepository.findById(jobDetails.getCompany().getId());
+
+            if(companyOptional.isPresent()) {
+                jobDetails.setCompany(companyOptional.get());
+            }
+        }
+
+        
         return jobRepository.save(jobDetails);
     }
 
