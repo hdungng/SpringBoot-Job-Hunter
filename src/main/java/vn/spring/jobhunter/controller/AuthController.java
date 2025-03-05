@@ -58,12 +58,15 @@ public class AuthController {
         User currentUserDB = userService.getUserByEmail(loginDTO.getUsername());
 
         if (currentUserDB != null) {
-            ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(currentUserDB.getId(),
-                    currentUserDB.getEmail(), currentUserDB.getName());
+            ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(
+                    currentUserDB.getId(),
+                    currentUserDB.getEmail(),
+                    currentUserDB.getName(),
+                    currentUserDB.getRole());
             res.setUser(userLogin);
         }
         // create access token
-        String access_token = securityUtil.createAccessToken(authentication.getName(), res.getUser());
+        String access_token = securityUtil.createAccessToken(authentication.getName(), res);
         res.setAccessToken(access_token);
 
         // create refresh token
@@ -97,14 +100,15 @@ public class AuthController {
             userLogin.setId(currentUserDB.getId());
             userLogin.setEmail(currentUserDB.getEmail());
             userLogin.setName(currentUserDB.getName());
+            userLogin.setRole(currentUserDB.getRole());
             userGetAccount.setUser(userLogin);
         }
         return ResponseEntity.ok().body(userGetAccount);
     }
 
-
     @GetMapping("refresh")
-    public ResponseEntity<ResLoginDTO> getRefreshToken(@CookieValue(name = "refresh_token") String refresh_token) throws IdInvalidException {
+    public ResponseEntity<ResLoginDTO> getRefreshToken(@CookieValue(name = "refresh_token") String refresh_token)
+            throws IdInvalidException {
         // check valid
         Jwt decodedToken = securityUtil.checkValidRefreshToken(refresh_token);
 
@@ -113,7 +117,7 @@ public class AuthController {
         // check user by token + email
         User currentUser = userService.getUserByRefreshTokenAndEmail(refresh_token, email);
 
-        if(currentUser == null) {
+        if (currentUser == null) {
             throw new IdInvalidException("Refresh Token is not valid");
         }
 
@@ -123,11 +127,11 @@ public class AuthController {
 
         if (currentUserDB != null) {
             ResLoginDTO.UserLogin userLogin = new ResLoginDTO.UserLogin(currentUserDB.getId(),
-                    currentUserDB.getEmail(), currentUserDB.getName());
+                    currentUserDB.getEmail(), currentUserDB.getName(), currentUserDB.getRole());
             res.setUser(userLogin);
         }
         // create access token
-        String access_token = securityUtil.createAccessToken(email, res.getUser());
+        String access_token = securityUtil.createAccessToken(email, res);
         res.setAccessToken(access_token);
 
         // create refresh token
@@ -154,7 +158,7 @@ public class AuthController {
     public ResponseEntity<Void> logout() throws IdInvalidException {
         String email = SecurityUtil.getCurrentUserLogin().isPresent() ? SecurityUtil.getCurrentUserLogin().get() : "";
 
-        if(email.equals("")) {
+        if (email.equals("")) {
             throw new IdInvalidException("Access token is invalid");
         }
 
@@ -174,5 +178,5 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, resCookies.toString())
                 .body(null);
     }
-    
+
 }
