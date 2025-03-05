@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import vn.spring.jobhunter.domain.Role;
 
 @Data
 @AllArgsConstructor
@@ -21,6 +22,7 @@ public class ResLoginDTO {
         private long id;
         private String email;
         private String name;
+        private Role role;
     }
 
     @Data
@@ -30,4 +32,13 @@ public class ResLoginDTO {
         private UserLogin user;
     }
 
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserInsideToken {
+        private long id;
+        private String email;
+        private String name;
+    }
 }

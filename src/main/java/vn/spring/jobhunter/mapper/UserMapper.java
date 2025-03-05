@@ -47,11 +47,18 @@ public class UserMapper {
     public ResUserDTO mapToUserDto(User user) {
         ResUserDTO res = new ResUserDTO();
         ResUserDTO.CompanyUser com = new ResUserDTO.CompanyUser();
+        ResUserDTO.RoleUser roleUser = new ResUserDTO.RoleUser();
 
         if (user.getCompany() != null) {
             com.setId(user.getCompany().getId());
             com.setName(user.getCompany().getName());
             res.setCompany(com);
+        }
+
+        if (user.getRole() != null) {
+            com.setId(user.getRole().getId());
+            com.setName(user.getRole().getName());
+            res.setRole(roleUser);
         }
 
         res.setId(user.getId());
